@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="ja" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="P&M Solutions - End-to-End Digital Transformation for SMBs">
+    <title>P&M Solutions | Modern Digital Solutions</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['Noto Sans JP', 'sans-serif'],
+                        'display': ['Poppins', 'sans-serif'],
+                    },
+                    colors: {
+                        'navy': {
+                            900: '#0B1120',
+                            800: '#0F172A',
+                            700: '#1E293B',
+                            950: '#030712',
+                        },
+                        'brand': {
+                            DEFAULT: '#2563EB',
+                            light: '#60A5FA',
+                            dark: '#1D4ED8',
+                        },
+                        'teal': {
+                            accent: '#2DD4BF',
+                        }
+                    },
+                    animation: {
+                        'blob': 'blob 7s infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Custom Utilities */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .glass-dark {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Tech Grid Background Pattern */
+        .bg-grid-pattern {
+            background-image: linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        /* Text Gradients */
+        .text-gradient {
+            background: linear-gradient(135deg, #2563EB 0%, #2DD4BF 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Smooth Reveal */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
+        }
+        
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Card Hover Glow */
+        .card-glow:hover {
+            box-shadow: 0 0 30px rgba(37, 99, 235, 0.15);
+            border-color: rgba(37, 99, 235, 0.3);
+        }
+
+        /* Language toggle button states */
+        .lang-btn {
+            transition: all 0.2s ease;
+        }
+        .lang-btn.active {
+            background: white;
+            color: #0B1120;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .lang-btn:not(.active) {
+            color: #94a3b8;
+        }
+        .lang-btn:not(.active):hover {
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased overflow-x-hidden">
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 z-50 glass-dark transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <a href="#" class="flex items-center space-x-3 group">
+                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-brand to-teal-accent flex items-center justify-center shadow-lg group-hover:shadow-brand/50 transition-all">
+                        <span class="text-white font-display font-bold text-lg">PM</span>
+                    </div>
+                    <span class="text-white font-display font-semibold text-lg tracking-tight">P&M Solutions</span>
+                </a>
+                
+                <!-- Desktop Navigation -->
+                <div class="hidden lg:flex items-center space-x-8">
+                    <a href="#services" class="text-slate-300 hover:text-white hover:bg-white/10 px-3 py-2 rounded-lg transition-all text-sm font-medium" data-ja="サービス" data-en="Services">サービス</a>
+                    <a href="#about" class="text-slate-300 hover:text-white hover:bg-white/10 px-3 py-2 rounded-lg transition-all text-sm font-medium" data-ja="私たちについて" data-en="About Us">私たちについて</a>
+                    <a href="#team" class="text-slate-300 hover:text-white hover:bg-white/10 px-3 py-2 rounded-lg transition-all text-sm font-medium" data-ja="チーム" data-en="Team">チーム</a>
+                    <a href="#contact" class="text-slate-300 hover:text-white hover:bg-white/10 px-3 py-2 rounded-lg transition-all text-sm font-medium" data-ja="お問い合わせ" data-en="Contact">お問い合わせ</a>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <!-- Language Toggle -->
+                    <div class="hidden sm:flex bg-white/10 rounded-full p-1 border border-white/10">
+                        <button id="lang-ja" class="lang-btn px-4 py-1.5 rounded-full text-xs font-medium active" onclick="setLanguage('ja')">JP</button>
+                        <button id="lang-en" class="lang-btn px-4 py-1.5 rounded-full text-xs font-medium" onclick="setLanguage('en')">EN</button>
+                    </div>
+                    
+                    <!-- CTA Button -->
+                    <a href="#contact" class="hidden lg:flex items-center px-6 py-2.5 bg-brand text-white rounded-lg font-medium text-sm hover:bg-brand-dark transition-all shadow-lg shadow-brand/20">
+                        <span data-ja="無料相談" data-en="Free Consultation">無料相談</span>
+                    </a>
+                    
+                    <!-- Mobile Menu Button -->
+                    <button class="lg:hidden text-white" onclick="toggleMobileMenu()">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="fixed inset-0 z-40 bg-navy-900 transform translate-x-full transition-transform duration-300 lg:hidden flex flex-col justify-center items-center space-y-8">
+        <button onclick="toggleMobileMenu()" class="absolute top-6 right-6 text-white">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+        <a href="#services" onclick="toggleMobileMenu()" class="text-2xl text-white font-display font-medium" data-ja="サービス" data-en="Services">サービス</a>
+        <a href="#about" onclick="toggleMobileMenu()" class="text-2xl text-white font-display font-medium" data-ja="私たちについて" data-en="About Us">私たちについて</a>
+        <a href="#team" onclick="toggleMobileMenu()" class="text-2xl text-white font-display font-medium" data-ja="チーム" data-en="Team">チーム</a>
+        <a href="#contact" onclick="toggleMobileMenu()" class="text-2xl text-white font-display font-medium" data-ja="お問い合わせ" data-en="Contact">お問い合わせ</a>
+        
+        <!-- Mobile Language Toggle -->
+        <div class="flex bg-white/10 rounded-full p-1 border border-white/10 mt-8">
+            <button id="mobile-lang-ja" class="lang-btn px-6 py-2 rounded-full text-sm font-medium active" onclick="setLanguage('ja')">日本語</button>
+            <button id="mobile-lang-en" class="lang-btn px-6 py-2 rounded-full text-sm font-medium" onclick="setLanguage('en')">English</button>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="relative min-h-screen flex items-center pt-20 bg-navy-900 overflow-hidden">
+        <div class="absolute inset-0 bg-grid-pattern opacity-20"></div>
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full overflow-hidden pointer-events-none">
+            <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-brand opacity-20 rounded-full mix-blend-screen filter blur-[100px] animate-blob"></div>
+            <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-teal-accent opacity-20 rounded-full mix-blend-screen filter blur-[100px] animate-blob animation-delay-2000"></div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 py-20">
+            <div class="grid lg:grid-cols-2 gap-16 items-center">
+                <div class="reveal active">
+                    <!-- Badge -->
+                    <div class="inline-flex items-center px-3 py-1 rounded-full border border-teal-accent/30 bg-teal-accent/10 mb-8 backdrop-blur-sm">
+                        <span class="w-2 h-2 bg-teal-accent rounded-full mr-2 animate-pulse"></span>
+                        <span class="text-teal-accent text-xs font-semibold tracking-wide uppercase" data-ja="DXパートナー" data-en="Digital Transformation Partner">DXパートナー</span>
+                    </div>
+                    
+                    <!-- Hero Heading -->
+                    <h1 class="text-4xl sm:text-6xl font-display font-bold text-white leading-tight mb-6">
+                        <span data-ja="シンプルで効果的な" data-en="Simple & Effective">シンプルで効果的な</span><br>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-light to-teal-accent" data-ja="デジタルソリューション" data-en="Digital Solutions">デジタルソリューション</span>
+                    </h1>
+                    
+                    <!-- Hero Description -->
+                    <p class="text-lg text-slate-400 mb-10 max-w-lg leading-relaxed" data-ja="製品開発と組織変革の専門家が、中小企業のデジタルトランスフォーメーションをエンドツーエンドで支援します。" data-en="Product development and organizational transformation experts supporting end-to-end digital transformation for SMBs.">
+                        製品開発と組織変革の専門家が、中小企業のデジタルトランスフォーメーションをエンドツーエンドで支援します。
+                    </p>
+                    
+                    <!-- CTA Buttons -->
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <a href="#contact" class="px-8 py-4 bg-white text-navy-900 rounded-lg font-bold text-sm hover:bg-slate-200 transition-all flex items-center justify-center">
+                            <span data-ja="無料相談を予約" data-en="Book Free Consultation">無料相談を予約</span>
+                            <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </a>
+                        <a href="#services" class="px-8 py-4 border border-white/20 text-white rounded-lg font-bold text-sm hover:bg-white/5 transition-all flex items-center justify-center">
+                            <span data-ja="サービスを見る" data-en="View Services">サービスを見る</span>
+                        </a>
+                    </div>
+                </div>
+
+                 <!-- Hero Visual -->
+                <div class="relative lg:h-[600px] flex items-center justify-center reveal delay-200">
+                    <div class="relative w-full max-w-lg aspect-square">
+                        <div class="absolute inset-0 bg-gradient-to-tr from-brand-dark/30 via-teal-accent/20 to-purple-900/30 rounded-full blur-[80px] animate-pulse"></div>
+                
+                        <div class="absolute inset-0 glass-dark border border-white/10 rounded-3xl p-6 flex flex-col justify-between relative overflow-hidden transform rotate-2 hover:rotate-0 transition-all duration-700">
+                            <div class="absolute inset-0 bg-grid-pattern opacity-10"></div>
+                
+                            <!-- Analysis Card -->
+                            <div class="relative z-10 self-start bg-white/95 backdrop-blur-md p-4 rounded-xl border-l-4 border-brand w-52 animate-float shadow-xl shadow-brand/20" style="animation-delay: 0s;">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <div class="w-10 h-10 rounded-lg bg-brand/10 flex items-center justify-center text-brand">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                                    </div>
+                                    <span class="text-sm font-bold text-navy-900 uppercase tracking-wider" data-ja="分析" data-en="Analysis">分析</span>
+                                </div>
+                                <div class="h-2 w-full bg-slate-200 rounded-full overflow-hidden">
+                                    <div class="h-full bg-gradient-to-r from-brand to-brand-light w-2/3 rounded-full"></div>
+                                </div>
+                            </div>
+                
+                            <!-- Decorative Lines -->
+                            <svg class="absolute inset-0 w-full h-full pointer-events-none z-0" style="filter: drop-shadow(0 0 4px rgba(45, 212, 191, 0.5));">
+                                <path d="M 100 100 C 100 200, 250 150, 250 250" stroke="url(#grad1)" stroke-width="3" fill="none" stroke-dasharray="10 10" class="animate-pulse opacity-50"/>
+                                <path d="M 250 330 C 250 400, 400 350, 400 450" stroke="url(#grad1)" stroke-width="3" fill="none" stroke-dasharray="10 10" class="animate-pulse opacity-50"/>
+                                <defs>
+                                    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+                                        <stop offset="100%" style="stop-color:#2dd4bf;stop-opacity:1" />
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                
+                            <!-- Strategy Card -->
+                            <div class="relative z-10 self-center bg-white backdrop-blur-md p-6 rounded-full border-4 border-teal-accent/50 w-44 h-44 flex flex-col items-center justify-center text-center animate-float shadow-xl shadow-teal-accent/30" style="animation-delay: 1s;">
+                                <div class="absolute inset-0 rounded-full bg-teal-accent/10 animate-ping" style="animation-duration: 3s;"></div>
+                                <div class="w-12 h-12 rounded-full bg-teal-accent/20 flex items-center justify-center text-teal-accent mb-2">
+                                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                                </div>
+                                <span class="text-sm font-bold text-navy-900 uppercase tracking-wider" data-ja="戦略" data-en="Strategy">戦略</span>
+                                <span class="text-xs text-slate-500 mt-1" data-ja="最適化ロジック" data-en="Optimization Logic">最適化ロジック</span>
+                            </div>
+                
+                            <!-- Results Card -->
+                            <div class="relative z-10 self-end bg-white/95 backdrop-blur-md p-4 rounded-xl border-l-4 border-teal-accent w-52 animate-float shadow-xl shadow-teal-accent/20" style="animation-delay: 2s;">
+                                <div class="flex items-center justify-between mb-3">
+                                    <span class="text-sm font-bold text-navy-900 uppercase tracking-wider" data-ja="成果" data-en="Results">成果</span>
+                                    <span class="text-teal-accent font-bold text-base">↗ 150%</span>
+                                </div>
+                                <div class="flex items-end gap-1.5 h-10">
+                                    <div class="w-1/4 bg-slate-200 h-1/3 rounded-sm"></div>
+                                    <div class="w-1/4 bg-slate-200 h-1/2 rounded-sm"></div>
+                                    <div class="w-1/4 bg-slate-300 h-2/3 rounded-sm"></div>
+                                    <div class="w-1/4 bg-gradient-to-t from-teal-accent to-brand h-full rounded-sm shadow-[0_0_12px_rgba(45,212,191,0.6)]"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-slate-50 to-transparent z-20"></div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services" class="py-24 bg-slate-50 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-20 reveal">
+                <span class="text-brand font-bold tracking-wider text-sm uppercase" data-ja="専門分野" data-en="Our Expertise">専門分野</span>
+                <h2 class="mt-2 text-3xl md:text-5xl font-display font-bold text-navy-900" data-ja="サービス" data-en="Our Services">サービス</h2>
+                <div class="w-20 h-1.5 bg-brand mx-auto mt-6 rounded-full"></div>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Product Development Card -->
+                <div class="group bg-white p-8 rounded-2xl border border-slate-100 transition-all duration-300 card-glow reveal">
+                    <div class="w-14 h-14 rounded-xl bg-blue-50 flex items-center justify-center mb-6 group-hover:bg-brand group-hover:text-white transition-colors duration-300">
+                        <svg class="w-7 h-7 text-brand group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-navy-900 mb-3" data-ja="製品開発・設計" data-en="Product Development & Design">製品開発・設計</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed mb-6" data-ja="要件定義からプロトタイプ、実装まで。ユーザー中心のアジャイル開発で、市場に適合する製品を構築します。" data-en="From requirements to prototype and implementation. Building market-fit products with user-centered agile development.">
+                        要件定義からプロトタイプ、実装まで。ユーザー中心のアジャイル開発で、市場に適合する製品を構築します。
+                    </p>
+                    <ul class="space-y-3">
+                        <li class="flex items-center text-sm text-slate-500"><span class="w-1.5 h-1.5 bg-teal-accent rounded-full mr-3"></span><span data-ja="MVP開発" data-en="MVP Development">MVP開発</span></li>
+                        <li class="flex items-center text-sm text-slate-500"><span class="w-1.5 h-1.5 bg-teal-accent rounded-full mr-3"></span><span data-ja="UI/UXデザイン" data-en="UI/UX Design">UI/UXデザイン</span></li>
+                    </ul>
+                </div>
+
+                <!-- DX Consulting Card -->
+                <div class="group bg-white p-8 rounded-2xl border border-slate-100 transition-all duration-300 card-glow reveal delay-100">
+                    <div class="w-14 h-14 rounded-xl bg-purple-50 flex items-center justify-center mb-6 group-hover:bg-purple-600 group-hover:text-white transition-colors duration-300">
+                        <svg class="w-7 h-7 text-purple-600 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-navy-900 mb-3" data-ja="DXコンサルティング" data-en="DX Consulting">DXコンサルティング</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed mb-6" data-ja="既存の業務プロセスをデジタル化し、効率化と競争力の向上を実現します。AIやRPAの活用も支援。" data-en="Digitize existing business processes for efficiency and competitiveness. Support for AI and RPA implementation.">
+                        既存の業務プロセスをデジタル化し、効率化と競争力の向上を実現します。AIやRPAの活用も支援。
+                    </p>
+                    <ul class="space-y-3">
+                        <li class="flex items-center text-sm text-slate-500"><span class="w-1.5 h-1.5 bg-teal-accent rounded-full mr-3"></span><span data-ja="プロセス最適化" data-en="Process Optimization">プロセス最適化</span></li>
+                        <li class="flex items-center text-sm text-slate-500"><span class="w-1.5 h-1.5 bg-teal-accent rounded-full mr-3"></span><span data-ja="AI/自動化" data-en="AI/Automation">AI/自動化</span></li>
+                    </ul>
+                </div>
+
+                <!-- Organizational Change Card -->
+                <div class="group bg-white p-8 rounded-2xl border border-slate-100 transition-all duration-300 card-glow reveal delay-200">
+                    <div class="w-14 h-14 rounded-xl bg-cyan-50 flex items-center justify-center mb-6 group-hover:bg-cyan-600 group-hover:text-white transition-colors duration-300">
+                        <svg class="w-7 h-7 text-cyan-600 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-navy-900 mb-3" data-ja="組織開発・変革" data-en="Organizational Development & Change">組織開発・変革</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed mb-6" data-ja="デジタル変革を成功させるための組織文化の醸成、リーダーシップ開発、チーム構築を支援します。" data-en="Supporting organizational culture, leadership development, and team building for successful digital transformation.">
+                        デジタル変革を成功させるための組織文化の醸成、リーダーシップ開発、チーム構築を支援します。
+                    </p>
+                    <ul class="space-y-3">
+                        <li class="flex items-center text-sm text-slate-500"><span class="w-1.5 h-1.5 bg-teal-accent rounded-full mr-3"></span><span data-ja="リーダーシップ研修" data-en="Leadership Training">リーダーシップ研修</span></li>
+                        <li class="flex items-center text-sm text-slate-500"><span class="w-1.5 h-1.5 bg-teal-accent rounded-full mr-3"></span><span data-ja="変革マネジメント" data-en="Change Management">変革マネジメント</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-24 bg-white overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col lg:flex-row items-center gap-16">
+                <!-- About Visual -->
+                <div class="lg:w-1/2 relative reveal">
+                    <div class="relative z-10 rounded-2xl overflow-hidden shadow-2xl">
+                         <div class="aspect-[4/3] bg-navy-800 relative flex items-center justify-center overflow-hidden">
+                            <div class="absolute inset-0 bg-gradient-to-tr from-brand to-teal-accent opacity-30"></div>
+                            <div class="text-center p-8">
+                                <h3 class="text-4xl md:text-5xl font-display font-bold text-white mb-2" data-ja="製品" data-en="Product">製品</h3>
+                                <div class="text-2xl text-white/50 font-light">×</div>
+                                <h3 class="text-4xl md:text-5xl font-display font-bold text-white mt-2" data-ja="組織" data-en="Organization">組織</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="absolute -top-10 -left-10 w-full h-full bg-slate-100 rounded-3xl -z-10 transform -rotate-3"></div>
+                </div>
+
+                <!-- About Content -->
+                <div class="lg:w-1/2 reveal delay-100">
+                    <h2 class="text-3xl md:text-4xl font-display font-bold text-navy-900 mb-6 leading-tight">
+                        <span data-ja="技術だけでなく、" data-en="More than Technology.">技術だけでなく、</span><br>
+                        <span class="text-brand" data-ja="人と組織を変革する。" data-en="Transforming People & Organizations.">人と組織を変革する。</span>
+                    </h2>
+                    <p class="text-slate-600 mb-8 leading-relaxed" data-ja="P&M Solutionsは、製品開発の専門性と組織変革のノウハウを組み合わせた、日本市場に特化したコンサルティングファームです。多くのプロジェクトが失敗するのは、技術導入に終始し、それを使う「人」を置き去りにするからです。" data-en="P&M Solutions is a consulting firm specializing in the Japanese market, combining product development expertise with organizational transformation know-how. Many projects fail because they focus solely on technology implementation, leaving behind the 'people' who will use it.">
+                        P&M Solutionsは、製品開発の専門性と組織変革のノウハウを組み合わせた、日本市場に特化したコンサルティングファームです。多くのプロジェクトが失敗するのは、技術導入に終始し、それを使う「人」を置き去りにするからです。
+                    </p>
+
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                            <h4 class="font-bold text-navy-900 mb-1" data-ja="シンプルさ" data-en="Simplicity">シンプルさ</h4>
+                            <p class="text-xs text-slate-500" data-ja="複雑なものをシンプルに" data-en="Making complex simple">複雑なものをシンプルに</p>
+                        </div>
+                        <div class="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                            <h4 class="font-bold text-navy-900 mb-1" data-ja="共創" data-en="Co-creation">共創</h4>
+                            <p class="text-xs text-slate-500" data-ja="一緒に作り上げる" data-en="Building together">一緒に作り上げる</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section id="team" class="py-24 bg-slate-50 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 reveal">
+                <h2 class="text-3xl md:text-4xl font-display font-bold text-navy-900 mb-4" data-ja="チーム" data-en="Our Team">チーム</h2>
+                <p class="text-slate-500 max-w-2xl mx-auto" data-ja="お客様のビジネス成功をサポートする経験豊富なプロフェッショナル" data-en="Experienced professionals supporting your business success">お客様のビジネス成功をサポートする経験豊富なプロフェッショナル</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                <!-- Patrick Laudon -->
+                <div class="bg-white rounded-2xl shadow-lg shadow-slate-200/50 p-8 border border-slate-100 hover:border-brand/30 transition-all duration-300 reveal group">
+                    <div class="flex items-start space-x-6">
+                        <div class="relative">
+                            <img 
+                                src="img/pl.jpg" 
+                                alt="Patrick Laudon" 
+                                class="w-20 h-20 rounded-full object-cover border-2 border-white shadow-md relative z-10"
+                            >
+                            <div class="absolute inset-0 bg-brand rounded-full blur opacity-0 group-hover:opacity-40 transition-opacity duration-300"></div>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h3 class="text-xl font-bold text-navy-900">Patrick Laudon</h3>
+                                    <p class="text-brand text-sm font-medium mb-3" data-ja="CEO / 組織リード" data-en="Organization Lead">組織リード</p>
+                                </div>
+                                <a href="https://www.linkedin.com/in/patricklaudon/" target="_blank" class="text-slate-400 hover:text-[#0077b5] transition-colors p-1">
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                                </a>
+                            </div>
+                            <p class="text-slate-600 text-sm leading-relaxed mb-4" data-ja="起業家、エグゼクティブコーチ、教育者として20年以上の経験。組織設計、文化変革、リーダーシップ開発のエキスパート。" data-en="Over 20 years of experience as an entrepreneur, executive coach, and educator. Expert in organizational design, cultural transformation, and leadership development.">
+                                起業家、エグゼクティブコーチ、教育者として20年以上の経験。組織設計、文化変革、リーダーシップ開発のエキスパート。
+                            </p>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="px-2 py-1 bg-slate-100 text-xs text-slate-600 rounded border border-slate-200" data-ja="20年以上の経験" data-en="20+ Years Exp">20年以上の経験</span>
+                                <span class="px-2 py-1 bg-slate-100 text-xs text-slate-600 rounded border border-slate-200" data-ja="5ヶ国語対応" data-en="5 Languages">5ヶ国語対応</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Matt Bennett -->
+                <div class="bg-white rounded-2xl shadow-lg shadow-slate-200/50 p-8 border border-slate-100 hover:border-brand/30 transition-all duration-300 reveal delay-100 group">
+                    <div class="flex items-start space-x-6">
+                        <div class="relative">
+                            <img 
+                                src="img/mb.jpg" 
+                                alt="Matt Bennett" 
+                                class="w-20 h-20 rounded-full object-cover border-2 border-white shadow-md relative z-10"
+                            >
+                            <div class="absolute inset-0 bg-brand rounded-full blur opacity-0 group-hover:opacity-40 transition-opacity duration-300"></div>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h3 class="text-xl font-bold text-navy-900">Matt Bennett</h3>
+                                    <p class="text-brand text-sm font-medium mb-3" data-ja="CTO & CPO / プロダクトリード" data-en="Product Lead">プロダクトリード</p>
+                                </div>
+                                <a href="https://www.linkedin.com/in/matt-bennett83/" target="_blank" class="text-slate-400 hover:text-[#0077b5] transition-colors p-1">
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                                </a>
+                            </div>
+                            <p class="text-slate-600 text-sm leading-relaxed mb-4" data-ja="10年以上のプロダクトマネジメント経験。SaaS、ユーティリティ業界でAI/ML、RPA導入を主導。アジャイル開発のエキスパート。" data-en="Over 10 years of product management experience. Led AI/ML and RPA implementations in SaaS and utility industries. Agile development expert.">
+                                10年以上のプロダクトマネジメント経験。SaaS、ユーティリティ業界でAI/ML、RPA導入を主導。アジャイル開発のエキスパート。
+                            </p>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="px-2 py-1 bg-slate-100 text-xs text-slate-600 rounded border border-slate-200">MBA</span>
+                                <span class="px-2 py-1 bg-slate-100 text-xs text-slate-600 rounded border border-slate-200" data-ja="アジャイル専門家" data-en="Agile Expert">アジャイル専門家</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-24 bg-navy-900 relative overflow-hidden">
+        <div class="absolute inset-0 bg-grid-pattern opacity-10"></div>
+        <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-brand opacity-10 blur-[120px] rounded-full pointer-events-none"></div>
+        <div class="absolute bottom-0 left-0 w-[500px] h-[500px] bg-teal-accent opacity-10 blur-[120px] rounded-full pointer-events-none"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid lg:grid-cols-2 gap-16">
+                <!-- Contact Info -->
+                <div class="reveal">
+                    <h2 class="text-3xl md:text-5xl font-display font-bold text-white mb-6" data-ja="未来を一緒に。" data-en="Let's Build the Future Together.">未来を一緒に。</h2>
+                    <p class="text-slate-400 mb-10 text-lg" data-ja="まずは無料相談から。御社の課題をお聞かせください。60分のセッションで、課題の整理をお手伝いします。" data-en="Start with a free consultation. Tell us about your challenges. We'll help organize your priorities in a 60-minute session.">
+                        まずは無料相談から。御社の課題をお聞かせください。<br>
+                        60分のセッションで、課題の整理をお手伝いします。
+                    </p>
+                    
+                    <div class="space-y-6">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
+                                <svg class="w-6 h-6 text-brand-light" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                            </div>
+                            <div>
+                                <p class="text-white font-medium" data-ja="メールでのお問い合わせ" data-en="Email Us">メールでのお問い合わせ</p>
+                                <p class="text-slate-400 text-sm">contact@pm-solutions.jp</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
+                                <svg class="w-6 h-6 text-brand-light" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            </div>
+                            <div>
+                                <p class="text-white font-medium" data-ja="所在地" data-en="Location">所在地</p>
+                                <p class="text-slate-400 text-sm" data-ja="横浜市、神奈川県（リモート対応可）" data-en="Yokohama, Kanagawa (Remote Available)">横浜市、神奈川県（リモート対応可）</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Form -->
+                <div class="reveal delay-100">
+                    <form class="glass-dark p-8 rounded-2xl border border-white/10 space-y-6">
+                        <div class="grid grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-2 uppercase tracking-wide" data-ja="会社名" data-en="Company">会社名</label>
+                                <input type="text" class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-brand transition-colors" data-placeholder-ja="株式会社〇〇" data-placeholder-en="Company Name" placeholder="株式会社〇〇">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-2 uppercase tracking-wide" data-ja="お名前" data-en="Name">お名前</label>
+                                <input type="text" class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-brand transition-colors" data-placeholder-ja="山田 太郎" data-placeholder-en="Your Name" placeholder="山田 太郎">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-2 uppercase tracking-wide" data-ja="メールアドレス" data-en="Email">メールアドレス</label>
+                            <input type="email" class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-brand transition-colors" placeholder="email@example.com">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-2 uppercase tracking-wide" data-ja="メッセージ" data-en="Message">メッセージ</label>
+                            <textarea rows="4" class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-brand transition-colors" data-placeholder-ja="ご相談内容をお書きください..." data-placeholder-en="How can we help you?" placeholder="ご相談内容をお書きください..."></textarea>
+                        </div>
+                        <button type="submit" class="w-full bg-brand hover:bg-brand-dark text-white font-bold py-4 rounded-lg transition-all shadow-lg shadow-brand/25" data-ja="メッセージを送信" data-en="Send Message">
+                            メッセージを送信
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-navy-950 py-12 border-t border-white/5">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-slate-500 text-sm" data-ja="© 2025 P&M Solutions. All rights reserved." data-en="© 2025 P&M Solutions. All rights reserved.">© 2025 P&M Solutions. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // Current language state
+        let currentLang = localStorage.getItem('pm-lang') || 'ja';
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            setLanguage(currentLang);
+            reveal();
+        });
+
+        // Language Toggle Function
+        function setLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('pm-lang', lang);
+            
+            // Update HTML lang attribute
+            document.documentElement.lang = lang === 'ja' ? 'ja' : 'en';
+            
+            // Update all text elements with data-ja and data-en attributes
+            document.querySelectorAll('[data-ja]').forEach(el => {
+                const text = el.getAttribute(`data-${lang}`);
+                if (text) {
+                    el.textContent = text;
+                }
+            });
+            
+            // Update placeholders
+            document.querySelectorAll('[data-placeholder-ja]').forEach(el => {
+                const placeholder = el.getAttribute(`data-placeholder-${lang}`);
+                if (placeholder) {
+                    el.placeholder = placeholder;
+                }
+            });
+            
+            // Update desktop language buttons
+            const jaBtn = document.getElementById('lang-ja');
+            const enBtn = document.getElementById('lang-en');
+            if (jaBtn && enBtn) {
+                if (lang === 'ja') {
+                    jaBtn.classList.add('active');
+                    enBtn.classList.remove('active');
+                } else {
+                    jaBtn.classList.remove('active');
+                    enBtn.classList.add('active');
+                }
+            }
+            
+            // Update mobile language buttons
+            const mobileJaBtn = document.getElementById('mobile-lang-ja');
+            const mobileEnBtn = document.getElementById('mobile-lang-en');
+            if (mobileJaBtn && mobileEnBtn) {
+                if (lang === 'ja') {
+                    mobileJaBtn.classList.add('active');
+                    mobileEnBtn.classList.remove('active');
+                } else {
+                    mobileJaBtn.classList.remove('active');
+                    mobileEnBtn.classList.add('active');
+                }
+            }
+        }
+
+        // Mobile Menu Toggle
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('translate-x-full');
+            
+            // Prevent body scroll when menu is open
+            if (menu.classList.contains('translate-x-full')) {
+                document.body.style.overflow = '';
+            } else {
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        // Scroll Reveal Animation
+        function reveal() {
+            const reveals = document.querySelectorAll(".reveal");
+            for (let i = 0; i < reveals.length; i++) {
+                const windowHeight = window.innerHeight;
+                const elementTop = reveals[i].getBoundingClientRect().top;
+                const elementVisible = 150;
+                if (elementTop < windowHeight - elementVisible) {
+                    reveals[i].classList.add("active");
+                }
+            }
+        }
+
+        // Navbar background on scroll
+        window.addEventListener('scroll', function() {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('bg-navy-900/95');
+            } else {
+                navbar.classList.remove('bg-navy-900/95');
+            }
+            reveal();
+        });
+
+        // Close mobile menu when clicking on a link
+        document.querySelectorAll('#mobile-menu a').forEach(link => {
+            link.addEventListener('click', () => {
+                document.body.style.overflow = '';
+            });
+        });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
