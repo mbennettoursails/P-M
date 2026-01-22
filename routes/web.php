@@ -7,6 +7,10 @@ use App\Http\Controllers\Admin\RolesController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\SystemHealthController;
 use App\Http\Controllers\ProfileController;
+use App\Livewire\Decisions\ProposalList;
+use App\Livewire\Decisions\ProposalShow;
+use App\Livewire\Decisions\ProposalCreate;
+use App\Livewire\Decisions\ProposalEdit;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -27,6 +31,29 @@ Route::get('/', function () {
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
+
+/*
+|--------------------------------------------------------------------------
+| Decisions (Decider) Routes
+|--------------------------------------------------------------------------
+| Livewire components handle all CRUD operations
+| No traditional controllers needed - Livewire components ARE the controllers
+*/
+Route::middleware(['auth', 'verified'])->prefix('decisions')->name('decisions.')->group(function () {
+    
+    // List all proposals
+    Route::get('/', ProposalList::class)->name('index');
+    
+    // Create new proposal
+    Route::get('/create', ProposalCreate::class)->name('create');
+    
+    // View single proposal (uses UUID for cleaner URLs)
+    Route::get('/{proposal:uuid}', ProposalShow::class)->name('show');
+    
+    // Edit proposal
+    Route::get('/{proposal:uuid}/edit', ProposalEdit::class)->name('edit');
+});
+
 
 /*
 |--------------------------------------------------------------------------
