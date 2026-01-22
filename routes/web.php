@@ -6,13 +6,7 @@ use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\RolesController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\SystemHealthController;
-use App\Http\Controllers\DecisionController;
-use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
-use App\Livewire\Decisions\ProposalList;
-use App\Livewire\Decisions\ProposalCreate;
-use App\Livewire\Decisions\ProposalShow;
-use App\Livewire\Decisions\ProposalEdit;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -33,48 +27,6 @@ Route::get('/', function () {
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
-
-/*
-|--------------------------------------------------------------------------
-| Decisions (Decider) Routes
-|--------------------------------------------------------------------------
-*/
-Route::middleware(['auth', 'verified'])->group(function () {
-    
-    // Livewire Pages
-    Route::prefix('decisions')->name('decisions.')->group(function () {
-        Route::get('/', ProposalList::class)->name('index');
-        Route::get('/create', ProposalCreate::class)->name('create');
-        Route::get('/{proposal:uuid}', ProposalShow::class)->name('show');
-        Route::get('/{proposal:uuid}/edit', ProposalEdit::class)->name('edit');
-    });
-    
-    // API-style routes for AJAX actions
-    Route::prefix('api/decisions')->name('api.decisions.')->group(function () {
-        Route::post('/{proposal:uuid}/vote', [DecisionController::class, 'vote'])->name('vote');
-        Route::post('/{proposal:uuid}/advance-stage', [DecisionController::class, 'advanceStage'])->name('advance-stage');
-        Route::post('/{proposal:uuid}/close', [DecisionController::class, 'close'])->name('close');
-        Route::post('/{proposal:uuid}/withdraw', [DecisionController::class, 'withdraw'])->name('withdraw');
-        Route::post('/{proposal:uuid}/comments', [DecisionController::class, 'addComment'])->name('comments.store');
-        Route::post('/{proposal:uuid}/documents', [DecisionController::class, 'uploadDocument'])->name('documents.store');
-        Route::delete('/documents/{document}', [DecisionController::class, 'deleteDocument'])->name('documents.destroy');
-        Route::post('/{proposal:uuid}/invite', [DecisionController::class, 'invite'])->name('invite');
-        Route::post('/{proposal:uuid}/remind', [DecisionController::class, 'sendReminders'])->name('remind');
-    });
-    
-});
-
-/*
-|--------------------------------------------------------------------------
-| Notification Routes
-|--------------------------------------------------------------------------
-*/
-Route::middleware(['auth'])->group(function () {
-    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
-    Route::post('/notifications/{notification:uuid}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
-    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
-    Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount'])->name('notifications.unread-count');
-});
 
 /*
 |--------------------------------------------------------------------------
