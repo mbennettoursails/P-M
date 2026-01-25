@@ -19,6 +19,18 @@
                     <x-nav-link :href="route('decisions.index')" :active="request()->routeIs('decisions.*')">
                         {{ __('Decisions') }}
                     </x-nav-link>
+
+                    {{-- Admin Dashboard Link - Only visible to admin users --}}
+                    @if(Auth::user()->hasRole('admin'))
+                        <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.*')">
+                            <span class="flex items-center">
+                                <svg class="w-4 h-4 mr-1 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                                </svg>
+                                {{ __('Admin') }}
+                            </span>
+                        </x-nav-link>
+                    @endif
                 </div>
             </div>
 
@@ -41,6 +53,13 @@
                         <x-dropdown-link :href="route('profile.edit')">
                             {{ __('Profile') }}
                         </x-dropdown-link>
+
+                        {{-- Admin Dashboard Link in Dropdown - Only visible to admin users --}}
+                        @if(Auth::user()->hasRole('admin'))
+                            <x-dropdown-link :href="route('admin.dashboard')" class="text-red-600 dark:text-red-400">
+                                {{ __('Admin Dashboard') }}
+                            </x-dropdown-link>
+                        @endif
 
                         <!-- Authentication -->
                         <form method="POST" action="{{ route('logout') }}">
@@ -78,6 +97,18 @@
             <x-responsive-nav-link :href="route('decisions.index')" :active="request()->routeIs('decisions.*')">
                 {{ __('Decisions') }}
             </x-responsive-nav-link>
+
+            {{-- Admin Dashboard Link - Mobile - Only visible to admin users --}}
+            @if(Auth::user()->hasRole('admin'))
+                <x-responsive-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.*')" class="text-red-600 dark:text-red-400 border-l-4 border-red-400">
+                    <span class="flex items-center">
+                        <svg class="w-4 h-4 mr-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                        </svg>
+                        {{ __('Admin Dashboard') }}
+                    </span>
+                </x-responsive-nav-link>
+            @endif
         </div>
 
         <!-- Responsive Settings Options -->
