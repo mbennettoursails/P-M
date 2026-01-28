@@ -5,6 +5,8 @@ namespace App\Providers;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
+use App\Models\News;
+use App\Policies\NewsPolicy;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\RateLimiter;
 
@@ -33,6 +35,9 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('access-admin', function ($user) {
             return $user->role === 'admin';
         });
+
+        Gate::policy(News::class, NewsPolicy::class);
+
 
         // Note: viewTelescope gate is defined in TelescopeServiceProvider
         // Note: viewHorizon gate is defined in HorizonServiceProvider (if installed)

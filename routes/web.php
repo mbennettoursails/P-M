@@ -3,6 +3,15 @@
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminUsersController;
 use App\Http\Controllers\Admin\AuditLogController;
+use App\Livewire\Knowledge\KnowledgeIndex;
+use App\Livewire\Knowledge\KnowledgeShow;
+use App\Livewire\Knowledge\KnowledgeCreate;
+use App\Livewire\Knowledge\KnowledgeEdit;
+use App\Http\Controllers\KnowledgeAttachmentController;
+use App\Livewire\News\NewsList;
+use App\Livewire\News\NewsShow;
+use App\Livewire\News\NewsCreate;
+use App\Livewire\News\NewsEdit;
 use App\Http\Controllers\Admin\RolesController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\SystemHealthController;
@@ -52,6 +61,40 @@ Route::middleware(['auth', 'verified'])->prefix('decisions')->name('decisions.')
     
     // Edit proposal
     Route::get('/{proposal:uuid}/edit', ProposalEdit::class)->name('edit');
+});
+
+// News Routes (public viewing, authenticated for full access)
+Route::middleware(['auth', 'verified'])->prefix('news')->name('news.')->group(function () {
+    // List all news
+    Route::get('/', NewsList::class)->name('index');
+    
+    // Create new article (requires create permission)
+    Route::get('/create', NewsCreate::class)->name('create');
+    
+    // View single article (uses UUID for cleaner URLs)
+    Route::get('/{news:uuid}', NewsShow::class)->name('show');
+    
+    // Edit article (requires update permission)
+    Route::get('/{news:uuid}/edit', NewsEdit::class)->name('edit');
+});
+
+// Knowledge Base Routes
+Route::middleware(['auth', 'verified'])->prefix('knowledge')->name('knowledge.')->group(function () {
+    // Browse/Search
+    Route::get('/', KnowledgeIndex::class)->name('index');
+    
+    // Create (requires permission)
+    Route::get('/create', KnowledgeCreate::class)->name('create');
+    
+    // View article
+    Route::get('/{article:uuid}', KnowledgeShow::class)->name('show');
+    
+    // Edit (requires permission)
+    Route::get('/{article:uuid}/edit', KnowledgeEdit::class)->name('edit');
+    
+    // Download attachment
+    Route::get('/attachment/{attachment:uuid}/download', [KnowledgeAttachmentController::class, 'download'])
+        ->name('attachment.download');
 });
 
 

@@ -5,233 +5,162 @@ namespace App\Livewire\Decisions;
 use App\Models\Proposal;
 use App\Models\User;
 use App\Services\ProposalService;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Validate;
 
 #[Layout('layouts.app')]
 class ProposalCreate extends Component
 {
     use WithFileUploads;
 
-    public int $step = 1;
+    // ═══════════════════════════════════════════════════════════════════
+    // STEP MANAGEMENT
+    // ═══════════════════════════════════════════════════════════════════
+
+    #[Locked]
     public int $totalSteps = 4;
 
-    // Step 1: Basic Information
+    public int $step = 1;
+
+    // ═══════════════════════════════════════════════════════════════════
+    // STEP 1: Basic Information
+    // ═══════════════════════════════════════════════════════════════════
+
     public string $title = '';
     public string $description = '';
 
-    // Step 2: Decision Settings
+    // ═══════════════════════════════════════════════════════════════════
+    // STEP 2: Decision Settings
+    // ═══════════════════════════════════════════════════════════════════
+
     public string $decision_type = 'democratic';
     public int $quorum_percentage = 50;
     public int $pass_threshold = 50;
     public bool $allow_anonymous_voting = false;
     public bool $show_results_during_voting = true;
 
-    // Step 3: Participants
+    // ═══════════════════════════════════════════════════════════════════
+    // STEP 3: Participants
+    // ═══════════════════════════════════════════════════════════════════
+
     public array $allowed_roles = ['reijikai'];
     public bool $is_invite_only = false;
     public array $invited_user_ids = [];
     public string $user_search = '';
 
-    // Step 4: Timeline & Documents
+    // ═══════════════════════════════════════════════════════════════════
+    // STEP 4: Timeline & Documents
+    // ═══════════════════════════════════════════════════════════════════
+
     public ?string $feedback_deadline = null;
     public ?string $voting_deadline = null;
     public array $documents = [];
 
-    // UI State
-    public bool $isSubmitting = false;
-    public bool $showUserSearch = false;
+    // ═══════════════════════════════════════════════════════════════════
+    // STATIC DATA (loaded once in mount)
+    // ═══════════════════════════════════════════════════════════════════
 
-    // ─────────────────────────────────────────────────────────────
-    // LIFECYCLE
-    // ─────────────────────────────────────────────────────────────
+    public array $decisionTypeOptions = [];
+    public array $stepDefinitions = [];
+    public array $roleOptions = [];
+
+    // ═══════════════════════════════════════════════════════════════════
+    // LIFECYCLE METHODS
+    // ═══════════════════════════════════════════════════════════════════
 
     public function mount(): void
     {
-        Log::info('ProposalCreate::mount called', [
-            'user_id' => Auth::id(),
-            'user_name' => Auth::user()?->name,
-        ]);
-    }
-
-    /**
-     * Hydrate hook - runs on every subsequent request
-     */
-    public function hydrate(): void
-    {
-        Log::debug('ProposalCreate::hydrate', [
-            'step' => $this->step,
-            'isSubmitting' => $this->isSubmitting,
-        ]);
-        
-        // Ensure step stays within bounds
-        if ($this->step < 1) {
-            $this->step = 1;
-        }
-        if ($this->step > $this->totalSteps) {
-            $this->step = $this->totalSteps;
-        }
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // VALIDATION
-    // ─────────────────────────────────────────────────────────────
-
-    protected function rules(): array
-    {
-        $rules = [
-            'title' => 'required|string|max:255',
-            'description' => 'required|string|max:10000',
-            'decision_type' => 'required|in:democratic,consensus,consent',
-            'quorum_percentage' => 'required|integer|min:25|max:100',
-            'pass_threshold' => 'required|integer|min:50|max:100',
-            'allow_anonymous_voting' => 'boolean',
-            'show_results_during_voting' => 'boolean',
-            'allowed_roles' => 'required|array|min:1',
-            'allowed_roles.*' => 'in:reijikai,shokuin,volunteer',
-            'is_invite_only' => 'boolean',
-            'feedback_deadline' => 'nullable|date|after:now',
-            'voting_deadline' => 'nullable|date|after:feedback_deadline',
-            'documents.*' => 'nullable|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,csv,ppt,pptx,txt,jpg,jpeg,png,gif,webp',
-        ];
-
-        if ($this->is_invite_only) {
-            $rules['invited_user_ids'] = 'required|array|min:1';
-            $rules['invited_user_ids.*'] = 'exists:users,id';
-        }
-
-        return $rules;
-    }
-
-    protected $messages = [
-        'title.required' => 'Please enter a title for your proposal.',
-        'title.max' => 'Title cannot exceed 255 characters.',
-        'description.required' => 'Please provide a description.',
-        'description.max' => 'Description cannot exceed 10,000 characters.',
-        'allowed_roles.required' => 'Please select at least one role.',
-        'allowed_roles.min' => 'Please select at least one role.',
-        'invited_user_ids.required' => 'Please invite at least one user when using invite-only mode.',
-        'invited_user_ids.min' => 'Please invite at least one user when using invite-only mode.',
-        'feedback_deadline.after' => 'Feedback deadline must be in the future.',
-        'voting_deadline.after' => 'Voting deadline must be after the feedback deadline.',
-    ];
-
-    // ─────────────────────────────────────────────────────────────
-    // COMPUTED PROPERTIES
-    // ─────────────────────────────────────────────────────────────
-
-    #[Computed]
-    public function decisionTypes(): array
-    {
-        return [
+        // Initialize static data once
+        $this->decisionTypeOptions = [
             'democratic' => [
-                'name' => 'Democratic (Majority Vote)',
+                'name' => __('Democratic (Majority Vote)'),
+                'name_ja' => '民主的（多数決）',
                 'icon' => 'hand-raised',
                 'color' => 'blue',
+                'short_description' => __('Majority wins. Fast and familiar for operational decisions.'),
                 'votes' => ['yes', 'no', 'abstain'],
-                'vote_labels' => ['Yes', 'No', 'Abstain'],
-                'vote_colors' => ['yes' => 'green', 'no' => 'red', 'abstain' => 'gray'],
-                'vote_icons' => ['yes' => 'check-circle', 'no' => 'x-circle', 'abstain' => 'minus-circle'],
-                'short_description' => 'Majority wins. Fast and familiar.',
-                'description' => 'The option with the most votes wins. Best for everyday decisions where speed matters.',
-                'best_for' => 'Routine decisions, time-sensitive matters, large groups',
-                'examples' => 'Event scheduling, budget approvals, operational changes',
-                'considerations' => 'May leave minority voices unheard. Set appropriate pass threshold.',
             ],
             'consensus' => [
-                'name' => 'Consensus',
+                'name' => __('Consensus'),
+                'name_ja' => 'コンセンサス',
                 'icon' => 'user-group',
                 'color' => 'purple',
+                'short_description' => __('Everyone agrees or stands aside. For major policy changes.'),
                 'votes' => ['agree', 'disagree', 'stand_aside', 'block'],
-                'vote_labels' => ['Agree', 'Disagree', 'Stand Aside', 'Block'],
-                'vote_colors' => ['agree' => 'green', 'disagree' => 'red', 'stand_aside' => 'yellow', 'block' => 'red'],
-                'vote_icons' => ['agree' => 'check-circle', 'disagree' => 'x-circle', 'stand_aside' => 'pause-circle', 'block' => 'hand-raised'],
-                'short_description' => 'Everyone agrees or stands aside.',
-                'description' => 'Requires all participants to agree or "stand aside". Any member can block.',
-                'best_for' => 'Major policy changes, constitutional amendments, core values',
-                'examples' => 'Bylaw changes, mission statements, long-term strategic plans',
-                'considerations' => 'Takes longer but builds stronger commitment. One block stops the proposal.',
             ],
             'consent' => [
-                'name' => 'Consent (No Objections)',
+                'name' => __('Consent (No Objections)'),
+                'name_ja' => '同意（異議なし）',
                 'icon' => 'shield-check',
                 'color' => 'green',
+                'short_description' => __('"Safe to try" if no strong objections. Good for experiments.'),
                 'votes' => ['no_objection', 'concern', 'object'],
-                'vote_labels' => ['No Objection', 'Concern', 'Object'],
-                'vote_colors' => ['no_objection' => 'green', 'concern' => 'yellow', 'object' => 'red'],
-                'vote_icons' => ['no_objection' => 'check-circle', 'concern' => 'exclamation-circle', 'object' => 'x-circle'],
-                'short_description' => '"Safe to try" if no strong objections.',
-                'description' => 'Passes if no one has a principled objection. Concerns are noted but don\'t block.',
-                'best_for' => 'Experimental initiatives, reversible decisions, innovation',
-                'examples' => 'Pilot programs, trial periods, new committee proposals',
-                'considerations' => 'Faster than consensus. Good for decisions that can be revisited.',
             ],
         ];
-    }
 
-    #[Computed]
-    public function selectedDecisionType(): array
-    {
-        return $this->decisionTypes[$this->decision_type] ?? $this->decisionTypes['democratic'];
-    }
-
-    #[Computed]
-    public function steps(): array
-    {
-        return [
-            1 => ['title' => 'Basic Information', 'icon' => 'document-text'],
-            2 => ['title' => 'Decision Settings', 'icon' => 'cog-6-tooth'],
-            3 => ['title' => 'Participants', 'icon' => 'users'],
-            4 => ['title' => 'Timeline & Documents', 'icon' => 'calendar'],
+        $this->stepDefinitions = [
+            1 => [
+                'title' => __('Basic Information'),
+                'title_ja' => '基本情報',
+                'icon' => 'document-text',
+                'description' => __('Title and description'),
+            ],
+            2 => [
+                'title' => __('Decision Settings'),
+                'title_ja' => '決定設定',
+                'icon' => 'cog-6-tooth',
+                'description' => __('How will this be decided?'),
+            ],
+            3 => [
+                'title' => __('Participants'),
+                'title_ja' => '参加者',
+                'icon' => 'users',
+                'description' => __('Who can participate?'),
+            ],
+            4 => [
+                'title' => __('Review & Submit'),
+                'title_ja' => '確認・提出',
+                'icon' => 'check-circle',
+                'description' => __('Review and create'),
+            ],
         ];
+
+        $this->roleOptions = [
+            'reijikai' => [
+                'name' => __('Reijikai'),
+                'name_ja' => '理事会',
+                'description' => __('Committee/Board members'),
+                'color' => 'indigo',
+            ],
+            'shokuin' => [
+                'name' => __('Shokuin'),
+                'name_ja' => '職員',
+                'description' => __('Staff members'),
+                'color' => 'blue',
+            ],
+            'volunteer' => [
+                'name' => __('Volunteers'),
+                'name_ja' => 'ボランティア',
+                'description' => __('General member volunteers'),
+                'color' => 'emerald',
+            ],
+        ];
+
+        // Set default deadlines
+        $this->feedback_deadline = now()->addDays(2)->format('Y-m-d\TH:i');
+        $this->voting_deadline = now()->addDays(4)->format('Y-m-d\TH:i');
     }
 
-    #[Computed]
-    public function invitedUsers(): \Illuminate\Support\Collection
-    {
-        if (empty($this->invited_user_ids)) {
-            return collect();
-        }
-
-        return User::whereIn('id', $this->invited_user_ids)->get(['id', 'name', 'email']);
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // USER SEARCH
-    // ─────────────────────────────────────────────────────────────
-
-    public function searchUsers(): \Illuminate\Support\Collection
-    {
-        if (strlen($this->user_search) < 2) {
-            return collect();
-        }
-
-        return User::query()
-            ->where(function ($query) {
-                $query->where('name', 'like', '%' . $this->user_search . '%')
-                    ->orWhere('email', 'like', '%' . $this->user_search . '%');
-            })
-            ->whereHas('roles', function ($query) {
-                $query->whereIn('name', $this->allowed_roles);
-            })
-            ->whereNotIn('id', $this->invited_user_ids)
-            ->where('id', '!=', Auth::id())
-            ->limit(10)
-            ->get(['id', 'name', 'email']);
-    }
-
-    public function updatedUserSearch(): void
-    {
-        $this->showUserSearch = strlen($this->user_search) >= 2;
-    }
-
-    // ─────────────────────────────────────────────────────────────
+    // ═══════════════════════════════════════════════════════════════════
     // STEP NAVIGATION
-    // ─────────────────────────────────────────────────────────────
+    // ═══════════════════════════════════════════════════════════════════
 
     public function nextStep(): void
     {
@@ -239,103 +168,135 @@ class ProposalCreate extends Component
         
         $this->validateCurrentStep();
 
-        if (!$this->getErrorBag()->any() && $this->step < $this->totalSteps) {
+        if ($this->step < $this->totalSteps) {
             $this->step++;
-            Log::info('ProposalCreate::nextStep success', ['new_step' => $this->step]);
-        } else {
-            Log::warning('ProposalCreate::nextStep blocked', [
-                'errors' => $this->getErrorBag()->toArray(),
-                'step' => $this->step,
-            ]);
+            Log::info('ProposalCreate::nextStep - advanced to step', ['new_step' => $this->step]);
         }
     }
 
     public function previousStep(): void
     {
+        Log::info('ProposalCreate::previousStep called', ['current_step' => $this->step]);
+        
         if ($this->step > 1) {
             $this->step--;
-            Log::info('ProposalCreate::previousStep', ['new_step' => $this->step]);
+            Log::info('ProposalCreate::previousStep - went back to step', ['new_step' => $this->step]);
         }
     }
 
-    public function goToStep(int $step): void
+    public function goToStep(int $targetStep): void
     {
-        if ($step >= 1 && $step < $this->step) {
-            $this->step = $step;
-            Log::info('ProposalCreate::goToStep', ['new_step' => $this->step]);
+        Log::info('ProposalCreate::goToStep called', ['target' => $targetStep, 'current' => $this->step]);
+        
+        // Can only go back to completed steps
+        if ($targetStep >= 1 && $targetStep < $this->step) {
+            $this->step = $targetStep;
+            Log::info('ProposalCreate::goToStep - changed to step', ['new_step' => $this->step]);
         }
+    }
+    
+    /**
+     * Livewire lifecycle hook - called on every request
+     * Use this to debug unexpected resets
+     */
+    public function hydrate(): void
+    {
+        Log::debug('ProposalCreate::hydrate', ['step' => $this->step]);
+    }
+    
+    public function dehydrate(): void
+    {
+        Log::debug('ProposalCreate::dehydrate', ['step' => $this->step]);
     }
 
     protected function validateCurrentStep(): void
     {
-        $this->resetErrorBag();
-
-        switch ($this->step) {
-            case 1:
-                $this->validate([
-                    'title' => 'required|string|max:255',
-                    'description' => 'required|string|max:10000',
-                ]);
-                break;
-            case 2:
-                $this->validate([
-                    'decision_type' => 'required|in:democratic,consensus,consent',
-                    'quorum_percentage' => 'required|integer|min:25|max:100',
-                    'pass_threshold' => 'required|integer|min:50|max:100',
-                ]);
-                break;
-            case 3:
-                $rules = ['allowed_roles' => 'required|array|min:1'];
-                if ($this->is_invite_only) {
-                    $rules['invited_user_ids'] = 'required|array|min:1';
-                }
-                $this->validate($rules);
-                break;
-        }
+        match ($this->step) {
+            1 => $this->validateStep1(),
+            2 => $this->validateStep2(),
+            3 => $this->validateStep3(),
+            default => null,
+        };
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // ACTIONS
-    // ─────────────────────────────────────────────────────────────
+    protected function validateStep1(): void
+    {
+        $this->validate([
+            'title' => ['required', 'string', 'min:5', 'max:255'],
+            'description' => ['required', 'string', 'min:20', 'max:10000'],
+        ], [
+            'title.required' => __('Please enter a title for your proposal.'),
+            'title.min' => __('Title must be at least 5 characters.'),
+            'title.max' => __('Title cannot exceed 255 characters.'),
+            'description.required' => __('Please provide a description of your proposal.'),
+            'description.min' => __('Description must be at least 20 characters to be meaningful.'),
+            'description.max' => __('Description cannot exceed 10,000 characters.'),
+        ]);
+    }
+
+    protected function validateStep2(): void
+    {
+        $this->validate([
+            'decision_type' => ['required', 'in:democratic,consensus,consent'],
+            'quorum_percentage' => ['required', 'integer', 'min:25', 'max:100'],
+            'pass_threshold' => ['required', 'integer', 'min:50', 'max:100'],
+        ], [
+            'decision_type.required' => __('Please select a decision type.'),
+            'decision_type.in' => __('Invalid decision type selected.'),
+            'quorum_percentage.min' => __('Quorum must be at least 25%.'),
+            'pass_threshold.min' => __('Pass threshold must be at least 50%.'),
+        ]);
+    }
+
+    protected function validateStep3(): void
+    {
+        $rules = [
+            'allowed_roles' => ['required', 'array', 'min:1'],
+            'allowed_roles.*' => ['in:reijikai,shokuin,volunteer'],
+        ];
+
+        $messages = [
+            'allowed_roles.required' => __('Please select at least one role that can participate.'),
+            'allowed_roles.min' => __('Please select at least one role.'),
+        ];
+
+        if ($this->is_invite_only) {
+            $rules['invited_user_ids'] = ['required', 'array', 'min:1'];
+            $messages['invited_user_ids.required'] = __('Please invite at least one member for invite-only proposals.');
+            $messages['invited_user_ids.min'] = __('Please invite at least one member.');
+        }
+
+        $this->validate($rules, $messages);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // DECISION TYPE SELECTION
+    // ═══════════════════════════════════════════════════════════════════
 
     public function selectDecisionType(string $type): void
     {
-        if (in_array($type, ['democratic', 'consensus', 'consent'])) {
+        if (array_key_exists($type, $this->decisionTypeOptions)) {
             $this->decision_type = $type;
-            Log::debug('ProposalCreate::selectDecisionType', ['type' => $type]);
+
+            // Reset pass_threshold for non-democratic types
+            if ($type !== 'democratic') {
+                $this->pass_threshold = 50;
+            }
         }
     }
 
-    public function addInvitedUser(int $userId): void
-    {
-        if (!in_array($userId, $this->invited_user_ids)) {
-            $this->invited_user_ids[] = $userId;
-        }
-        $this->user_search = '';
-        $this->showUserSearch = false;
-    }
-
-    public function removeInvitedUser(int $userId): void
-    {
-        $this->invited_user_ids = array_values(
-            array_filter($this->invited_user_ids, fn($id) => $id !== $userId)
-        );
-    }
-
-    public function toggleInviteOnly(): void
-    {
-        $this->is_invite_only = !$this->is_invite_only;
-
-        if (!$this->is_invite_only) {
-            $this->invited_user_ids = [];
-            $this->user_search = '';
-            $this->showUserSearch = false;
-        }
-    }
+    // ═══════════════════════════════════════════════════════════════════
+    // ROLE MANAGEMENT
+    // ═══════════════════════════════════════════════════════════════════
 
     public function toggleRole(string $role): void
     {
+        if (!array_key_exists($role, $this->roleOptions)) {
+            return;
+        }
+
         if (in_array($role, $this->allowed_roles)) {
+            // Don't allow removing last role
             if (count($this->allowed_roles) > 1) {
                 $this->allowed_roles = array_values(
                     array_filter($this->allowed_roles, fn($r) => $r !== $role)
@@ -345,9 +306,95 @@ class ProposalCreate extends Component
             $this->allowed_roles[] = $role;
         }
 
+        // Reset invited users when roles change (they may no longer be valid)
         if ($this->is_invite_only) {
             $this->invited_user_ids = [];
+            $this->user_search = '';
         }
+    }
+
+    public function toggleInviteOnly(): void
+    {
+        $this->is_invite_only = !$this->is_invite_only;
+
+        if (!$this->is_invite_only) {
+            $this->invited_user_ids = [];
+            $this->user_search = '';
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // USER SEARCH & INVITATION
+    // ═══════════════════════════════════════════════════════════════════
+
+    #[Computed]
+    public function searchResults(): Collection
+    {
+        if (!$this->is_invite_only || strlen($this->user_search) < 2) {
+            return collect();
+        }
+
+        $query = User::query()
+            ->where(function ($q) {
+                $q->where('name', 'like', '%' . $this->user_search . '%')
+                    ->orWhere('email', 'like', '%' . $this->user_search . '%');
+            })
+            ->whereNotIn('id', $this->invited_user_ids)
+            ->where('id', '!=', Auth::id())
+            ->limit(8);
+
+        // Filter by allowed roles if using Spatie
+        try {
+            $query->role($this->allowed_roles);
+        } catch (\Exception $e) {
+            // Role method not available, skip filtering
+        }
+
+        return $query->get(['id', 'name', 'email']);
+    }
+
+    #[Computed]
+    public function invitedUsers(): Collection
+    {
+        if (empty($this->invited_user_ids)) {
+            return collect();
+        }
+
+        return User::whereIn('id', $this->invited_user_ids)
+            ->get(['id', 'name', 'email']);
+    }
+
+    public function addInvitedUser(int $userId): void
+    {
+        if (!in_array($userId, $this->invited_user_ids)) {
+            $this->invited_user_ids[] = $userId;
+        }
+        $this->user_search = '';
+    }
+
+    public function removeInvitedUser(int $userId): void
+    {
+        $this->invited_user_ids = array_values(
+            array_filter($this->invited_user_ids, fn($id) => $id !== $userId)
+        );
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // DOCUMENT MANAGEMENT
+    // ═══════════════════════════════════════════════════════════════════
+
+    public function updatedDocuments(): void
+    {
+        $this->validate([
+            'documents.*' => [
+                'file',
+                'max:10240', // 10MB
+                'mimes:pdf,doc,docx,xls,xlsx,csv,ppt,pptx,txt,jpg,jpeg,png,gif,webp',
+            ],
+        ], [
+            'documents.*.max' => __('Each file must be less than 10MB.'),
+            'documents.*.mimes' => __('File type not allowed. Use PDF, Office documents, or images.'),
+        ]);
     }
 
     public function removeDocument(int $index): void
@@ -358,54 +405,36 @@ class ProposalCreate extends Component
         }
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // SUBMISSION
-    // ─────────────────────────────────────────────────────────────
+    // ═══════════════════════════════════════════════════════════════════
+    // FORM SUBMISSION
+    // ═══════════════════════════════════════════════════════════════════
 
     public function submit()
     {
-        Log::info('═══════════════════════════════════════════════════════');
-        Log::info('ProposalCreate::submit STARTED', [
+        Log::info('ProposalCreate::submit - Starting submission', [
             'user_id' => Auth::id(),
-            'user_name' => Auth::user()?->name,
-            'isSubmitting_before' => $this->isSubmitting,
-            'step' => $this->step,
-        ]);
-        
-        // Check if already submitting
-        if ($this->isSubmitting) {
-            Log::warning('ProposalCreate::submit BLOCKED - already submitting');
-            return;
-        }
-
-        $this->isSubmitting = true;
-        $this->resetErrorBag();
-
-        Log::info('ProposalCreate::submit - State after initial setup', [
-            'isSubmitting' => $this->isSubmitting,
             'title' => $this->title,
-            'description_length' => strlen($this->description),
-            'decision_type' => $this->decision_type,
-            'quorum_percentage' => $this->quorum_percentage,
-            'pass_threshold' => $this->pass_threshold,
-            'allowed_roles' => $this->allowed_roles,
-            'is_invite_only' => $this->is_invite_only,
-            'invited_user_ids' => $this->invited_user_ids,
-            'feedback_deadline' => $this->feedback_deadline,
-            'voting_deadline' => $this->voting_deadline,
-            'documents_count' => count($this->documents),
+        ]);
+
+        // Validate all steps
+        $this->validate([
+            'title' => ['required', 'string', 'min:5', 'max:255'],
+            'description' => ['required', 'string', 'min:20', 'max:10000'],
+            'decision_type' => ['required', 'in:democratic,consensus,consent'],
+            'quorum_percentage' => ['required', 'integer', 'min:25', 'max:100'],
+            'pass_threshold' => ['required', 'integer', 'min:50', 'max:100'],
+            'allowed_roles' => ['required', 'array', 'min:1'],
+            'allowed_roles.*' => ['in:reijikai,shokuin,volunteer'],
+            'feedback_deadline' => ['nullable', 'date', 'after:now'],
+            'voting_deadline' => ['nullable', 'date', 'after:feedback_deadline'],
+            'documents.*' => ['nullable', 'file', 'max:10240'],
         ]);
 
         try {
-            Log::info('ProposalCreate::submit - Starting validation');
-            $this->validate();
-            Log::info('ProposalCreate::submit - Validation PASSED');
-
-            Log::info('ProposalCreate::submit - Resolving ProposalService');
             $service = app(ProposalService::class);
-            Log::info('ProposalCreate::submit - ProposalService resolved: ' . get_class($service));
 
-            $proposalData = [
+            // Create proposal
+            $proposal = $service->createProposal([
                 'title' => $this->title,
                 'description' => $this->description,
                 'decision_type' => $this->decision_type,
@@ -418,87 +447,58 @@ class ProposalCreate extends Component
                 'invited_user_ids' => $this->is_invite_only ? $this->invited_user_ids : [],
                 'feedback_deadline' => $this->feedback_deadline ?: null,
                 'voting_deadline' => $this->voting_deadline ?: null,
-            ];
-
-            Log::info('ProposalCreate::submit - Calling createProposal', [
-                'data' => $proposalData,
-                'user' => Auth::user()?->toArray(),
-            ]);
-
-            $proposal = $service->createProposal($proposalData, Auth::user());
+            ], Auth::user());
 
             Log::info('ProposalCreate::submit - Proposal created', [
                 'proposal_id' => $proposal->id,
-                'proposal_uuid' => $proposal->uuid,
+                'uuid' => $proposal->uuid,
             ]);
 
-            // Handle document uploads
-            if (count($this->documents) > 0) {
-                Log::info('ProposalCreate::submit - Uploading documents', [
-                    'count' => count($this->documents),
-                ]);
-                
-                foreach ($this->documents as $index => $document) {
-                    Log::debug('ProposalCreate::submit - Uploading document', [
-                        'index' => $index,
-                        'name' => $document->getClientOriginalName(),
-                        'size' => $document->getSize(),
-                    ]);
-                    $service->uploadDocument($proposal, Auth::user(), $document);
+            // Upload documents
+            if (!empty($this->documents)) {
+                foreach ($this->documents as $document) {
+                    try {
+                        $service->uploadDocument($proposal, Auth::user(), $document);
+                    } catch (\Exception $e) {
+                        Log::warning('ProposalCreate::submit - Document upload failed', [
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
                 }
-                
-                Log::info('ProposalCreate::submit - Documents uploaded successfully');
             }
 
-            session()->flash('success', __('Proposal created successfully.'));
+            session()->flash('success', __('Proposal created successfully!'));
 
-            $redirectUrl = route('decisions.show', ['proposal' => $proposal->uuid]);
-            Log::info('ProposalCreate::submit - Redirecting', ['url' => $redirectUrl]);
-
-            return $this->redirect($redirectUrl, navigate: true);
+            return $this->redirect(
+                route('decisions.show', ['proposal' => $proposal->uuid]),
+                navigate: true
+            );
 
         } catch (\Illuminate\Validation\ValidationException $e) {
-            Log::error('ProposalCreate::submit - VALIDATION FAILED', [
-                'errors' => $e->errors(),
-            ]);
-            $this->isSubmitting = false;
             throw $e;
         } catch (\Exception $e) {
-            Log::error('ProposalCreate::submit - EXCEPTION', [
-                'message' => $e->getMessage(),
-                'code' => $e->getCode(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
+            Log::error('ProposalCreate::submit - Failed', [
+                'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-            $this->isSubmitting = false;
-            $this->addError('submit', __('Failed to create proposal: ') . $e->getMessage());
+
+            $this->addError('submit', __('Failed to create proposal. Please try again.'));
         }
-        
-        Log::info('ProposalCreate::submit ENDED');
-        Log::info('═══════════════════════════════════════════════════════');
     }
 
     public function saveDraft()
     {
-        Log::info('ProposalCreate::saveDraft STARTED', [
-            'user_id' => Auth::id(),
-            'isSubmitting' => $this->isSubmitting,
-        ]);
-        
-        if ($this->isSubmitting) {
-            Log::warning('ProposalCreate::saveDraft BLOCKED - already submitting');
-            return;
-        }
+        Log::info('ProposalCreate::saveDraft - Starting');
 
-        $this->isSubmitting = true;
-        $this->resetErrorBag();
+        // Minimal validation for draft
+        $this->validate([
+            'title' => ['required', 'string', 'min:3', 'max:255'],
+        ], [
+            'title.required' => __('Please enter at least a title to save as draft.'),
+            'title.min' => __('Title must be at least 3 characters.'),
+        ]);
 
         try {
-            Log::info('ProposalCreate::saveDraft - Validating title only');
-            $this->validate(['title' => 'required|string|max:255']);
-            Log::info('ProposalCreate::saveDraft - Validation passed');
-
             $service = app(ProposalService::class);
 
             $proposal = $service->createProposal([
@@ -516,46 +516,41 @@ class ProposalCreate extends Component
                 'voting_deadline' => $this->voting_deadline ?: null,
             ], Auth::user());
 
-            Log::info('ProposalCreate::saveDraft - Draft created', [
-                'proposal_id' => $proposal->id,
-                'proposal_uuid' => $proposal->uuid,
-            ]);
-
-            foreach ($this->documents as $document) {
-                $service->uploadDocument($proposal, Auth::user(), $document);
+            // Upload any documents
+            if (!empty($this->documents)) {
+                foreach ($this->documents as $document) {
+                    try {
+                        $service->uploadDocument($proposal, Auth::user(), $document);
+                    } catch (\Exception $e) {
+                        Log::warning('ProposalCreate::saveDraft - Document upload failed', [
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
+                }
             }
 
-            session()->flash('success', __('Draft saved successfully.'));
+            session()->flash('success', __('Draft saved successfully!'));
 
-            return $this->redirect(route('decisions.show', ['proposal' => $proposal->uuid]), navigate: true);
+            return $this->redirect(
+                route('decisions.show', ['proposal' => $proposal->uuid]),
+                navigate: true
+            );
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            Log::error('ProposalCreate::saveDraft - Validation failed', ['errors' => $e->errors()]);
-            $this->isSubmitting = false;
-            throw $e;
         } catch (\Exception $e) {
-            Log::error('ProposalCreate::saveDraft - Exception', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
+            Log::error('ProposalCreate::saveDraft - Failed', [
+                'error' => $e->getMessage(),
             ]);
-            $this->isSubmitting = false;
-            $this->addError('submit', __('Failed to save draft: ') . $e->getMessage());
+
+            $this->addError('submit', __('Failed to save draft. Please try again.'));
         }
     }
 
-    // ─────────────────────────────────────────────────────────────
+    // ═══════════════════════════════════════════════════════════════════
     // RENDER
-    // ─────────────────────────────────────────────────────────────
+    // ═══════════════════════════════════════════════════════════════════
 
     public function render()
     {
-        Log::debug('ProposalCreate::render', [
-            'step' => $this->step,
-            'isSubmitting' => $this->isSubmitting,
-        ]);
-        
-        return view('livewire.decisions.proposal-create', [
-            'searchedUsers' => $this->showUserSearch ? $this->searchUsers() : collect(),
-        ]);
+        return view('livewire.decisions.proposal-create');
     }
 }

@@ -6,17 +6,27 @@ use App\Models\Proposal;
 use App\Models\Vote;
 use App\Services\ProposalService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 
 #[Layout('layouts.app')]
 class ProposalShow extends Component
 {
     public Proposal $proposal;
+    
     public string $activeTab = 'overview';
+    
+    // Actions menu (header dropdown)
+    public bool $showActionsMenu = false;
+    
+    // Stage transition modal
     public bool $showStageModal = false;
     public ?string $targetStage = null;
     public string $stageNotes = '';
+    
+    // Withdraw modal
     public bool $showWithdrawModal = false;
     public string $withdrawReason = '';
 
@@ -31,15 +41,38 @@ class ProposalShow extends Component
         $this->authorize('view', $proposal);
         $this->proposal = $proposal;
 
+        // Default to vote tab if user can vote and hasn't voted yet
         if ($proposal->is_voting && $proposal->canUserVote(Auth::user())) {
-            $this->activeTab = 'vote';
+            $existingVote = $proposal->getUserVote(Auth::user());
+            if (!$existingVote) {
+                $this->activeTab = 'vote';
+            }
         }
+        
+        Log::info('ProposalShow::mount', [
+            'proposal_id' => $proposal->id,
+            'activeTab' => $this->activeTab,
+        ]);
     }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // TAB NAVIGATION
+    // ═══════════════════════════════════════════════════════════════════
 
     public function setTab(string $tab): void
     {
-        $this->activeTab = $tab;
+        Log::info('ProposalShow::setTab', ['from' => $this->activeTab, 'to' => $tab]);
+        
+        $validTabs = ['overview', 'discussion', 'vote', 'documents', 'history'];
+        
+        if (in_array($tab, $validTabs)) {
+            $this->activeTab = $tab;
+        }
     }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // STAGE TRANSITIONS
+    // ═══════════════════════════════════════════════════════════════════
 
     public function getAvailableTransitionsProperty(): array
     {
@@ -77,11 +110,15 @@ class ProposalShow extends Component
 
             $this->proposal->refresh();
             $this->closeStageModal();
-            session()->flash('success', 'Stage updated successfully.');
+            session()->flash('success', __('Stage updated successfully.'));
         } catch (\Exception $e) {
             $this->addError('stage', $e->getMessage());
         }
     }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // WITHDRAW
+    // ═══════════════════════════════════════════════════════════════════
 
     public function openWithdrawModal(): void
     {
@@ -108,12 +145,16 @@ class ProposalShow extends Component
                 $this->withdrawReason ?: null
             );
 
-            session()->flash('success', 'Proposal withdrawn.');
-            $this->redirect(route('decisions.index'), navigate: true);
+            session()->flash('success', __('Proposal withdrawn.'));
+            return $this->redirect(route('decisions.index'), navigate: true);
         } catch (\Exception $e) {
             $this->addError('withdraw', $e->getMessage());
         }
     }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // COMPUTED PROPERTIES
+    // ═══════════════════════════════════════════════════════════════════
 
     public function getCanVoteProperty(): bool
     {
@@ -142,8 +183,22 @@ class ProposalShow extends Component
 
     public function getStageHistoryProperty()
     {
-        return $this->proposal->stages()->with('transitioner')->get();
+        return $this->proposal->stages()->with('transitioner')->orderBy('started_at', 'asc')->get();
     }
+
+    public function getCommentsCountProperty(): int
+    {
+        return $this->proposal->allComments()->count();
+    }
+
+    public function getDocumentsCountProperty(): int
+    {
+        return $this->proposal->documents()->count();
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // RENDER
+    // ═══════════════════════════════════════════════════════════════════
 
     public function render()
     {
@@ -155,6 +210,8 @@ class ProposalShow extends Component
             'userVote' => $this->user_vote,
             'availableTransitions' => $this->available_transitions,
             'stageHistory' => $this->stage_history,
+            'commentsCount' => $this->comments_count,
+            'documentsCount' => $this->documents_count,
         ]);
     }
 }
