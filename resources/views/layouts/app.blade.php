@@ -4,13 +4,12 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
         <meta name="csrf-token" content="{{ csrf_token() }}">
-        <meta name="theme-color" content="#16a34a">
         
-        {{-- PWA Meta Tags --}}
-        <meta name="mobile-web-app-capable" content="yes">
-        <meta name="apple-mobile-web-app-capable" content="yes">
-        <meta name="apple-mobile-web-app-status-bar-style" content="default">
-        <meta name="apple-mobile-web-app-title" content="北東京CO-OP Hub">
+        {{-- ============================================= --}}
+        {{-- PWA Head - Includes manifest, theme-color,   --}}
+        {{-- apple-touch-icon, and other PWA meta tags    --}}
+        {{-- ============================================= --}}
+        @PwaHead
 
         <title>{{ config('app.name', '北東京CO-OP Hub') }}</title>
 
@@ -54,6 +53,20 @@
             /* Sidebar content offset helper */
             .sidebar-offset {
                 transition: margin-left 0.3s ease-in-out;
+            }
+            
+            /* PWA Install Button positioning (when shown) */
+            .pwa-install-container {
+                position: fixed;
+                bottom: 100px;
+                right: 16px;
+                z-index: 40;
+            }
+            
+            @media (min-width: 1024px) {
+                .pwa-install-container {
+                    bottom: 24px;
+                }
             }
         </style>
 
@@ -215,9 +228,24 @@
                     </div>
                 </footer>
             </div>
+            
+            {{-- ============================================= --}}
+            {{-- PWA Install Button (Optional - shows when    --}}
+            {{-- install prompt is available)                 --}}
+            {{-- Remove this if you don't want the button     --}}
+            {{-- ============================================= --}}
+            <div class="pwa-install-container">
+                @PwaInstallButton
+            </div>
         </div>
 
         @livewireScripts
+        
+        {{-- ============================================= --}}
+        {{-- PWA Service Worker Registration              --}}
+        {{-- This MUST be after @livewireScripts          --}}
+        {{-- ============================================= --}}
+        @RegisterServiceWorkerScript
         
         {{-- Sidebar Collapse Handler --}}
         <script>
