@@ -3,23 +3,26 @@
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminUsersController;
 use App\Http\Controllers\Admin\AuditLogController;
-use App\Livewire\Knowledge\KnowledgeIndex;
-use App\Livewire\Knowledge\KnowledgeShow;
-use App\Livewire\Knowledge\KnowledgeCreate;
-use App\Livewire\Knowledge\KnowledgeEdit;
-use App\Http\Controllers\KnowledgeAttachmentController;
-use App\Livewire\News\NewsList;
-use App\Livewire\News\NewsShow;
-use App\Livewire\News\NewsCreate;
-use App\Livewire\News\NewsEdit;
 use App\Http\Controllers\Admin\RolesController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\SystemHealthController;
+use App\Http\Controllers\KnowledgeAttachmentController;
 use App\Http\Controllers\ProfileController;
-use App\Livewire\Decisions\ProposalList;
-use App\Livewire\Decisions\ProposalShow;
 use App\Livewire\Decisions\ProposalCreate;
 use App\Livewire\Decisions\ProposalEdit;
+use App\Livewire\Decisions\ProposalList;
+use App\Livewire\Decisions\ProposalShow;
+use App\Livewire\Events\EventForm;
+use App\Livewire\Events\EventShow;
+use App\Livewire\Events\EventsIndex;
+use App\Livewire\Knowledge\KnowledgeCreate;
+use App\Livewire\Knowledge\KnowledgeEdit;
+use App\Livewire\Knowledge\KnowledgeIndex;
+use App\Livewire\Knowledge\KnowledgeShow;
+use App\Livewire\News\NewsCreate;
+use App\Livewire\News\NewsEdit;
+use App\Livewire\News\NewsList;
+use App\Livewire\News\NewsShow;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -34,69 +37,86 @@ Route::get('/', function () {
 
 /*
 |--------------------------------------------------------------------------
-| User Dashboard Routes
+| Authenticated & Verified User Routes
 |--------------------------------------------------------------------------
+| All member-facing features require authentication and email verification
 */
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::middleware(['auth', 'verified'])->group(function () {
+    
+    /*
+    |--------------------------------------------------------------------------
+    | Dashboard
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
 
-/*
-|--------------------------------------------------------------------------
-| Decisions (Decider) Routes
-|--------------------------------------------------------------------------
-| Livewire components handle all CRUD operations
-| No traditional controllers needed - Livewire components ARE the controllers
-*/
-Route::middleware(['auth', 'verified'])->prefix('decisions')->name('decisions.')->group(function () {
-    
-    // List all proposals
-    Route::get('/', ProposalList::class)->name('index');
-    
-    // Create new proposal
-    Route::get('/create', ProposalCreate::class)->name('create');
-    
-    // View single proposal (uses UUID for cleaner URLs)
-    Route::get('/{proposal:uuid}', ProposalShow::class)->name('show');
-    
-    // Edit proposal
-    Route::get('/{proposal:uuid}/edit', ProposalEdit::class)->name('edit');
+    /*
+    |--------------------------------------------------------------------------
+    | News Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('news')->name('news.')->group(function () {
+        Route::get('/', NewsList::class)->name('index');
+        Route::get('/create', NewsCreate::class)->name('create');
+        Route::get('/{news:uuid}', NewsShow::class)->name('show');
+        Route::get('/{news:uuid}/edit', NewsEdit::class)->name('edit');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Events Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('events')->name('events.')->group(function () {
+        Route::get('/', EventsIndex::class)->name('index');
+        Route::get('/create', EventForm::class)
+            ->middleware('can:create,App\Models\Event')
+            ->name('create');
+        Route::get('/{event:uuid}', EventShow::class)->name('show');
+        Route::get('/{event:uuid}/edit', EventForm::class)
+            ->middleware('can:update,event')
+            ->name('edit');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Knowledge Base Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('knowledge')->name('knowledge.')->group(function () {
+        Route::get('/', KnowledgeIndex::class)->name('index');
+        Route::get('/create', KnowledgeCreate::class)->name('create');
+        Route::get('/{article:uuid}', KnowledgeShow::class)->name('show');
+        Route::get('/{article:uuid}/edit', KnowledgeEdit::class)->name('edit');
+        Route::get('/attachment/{attachment:uuid}/download', [KnowledgeAttachmentController::class, 'download'])
+            ->name('attachment.download');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Decisions (Proposals) Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('decisions')->name('decisions.')->group(function () {
+        Route::get('/', ProposalList::class)->name('index');
+        Route::get('/create', ProposalCreate::class)->name('create');
+        Route::get('/{proposal:uuid}', ProposalShow::class)->name('show');
+        Route::get('/{proposal:uuid}/edit', ProposalEdit::class)->name('edit');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Profile Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('profile')->name('profile.')->group(function () {
+        Route::get('/', [ProfileController::class, 'edit'])->name('edit');
+        Route::patch('/', [ProfileController::class, 'update'])->name('update');
+        Route::delete('/', [ProfileController::class, 'destroy'])->name('destroy');
+    });
 });
-
-// News Routes (public viewing, authenticated for full access)
-Route::middleware(['auth', 'verified'])->prefix('news')->name('news.')->group(function () {
-    // List all news
-    Route::get('/', NewsList::class)->name('index');
-    
-    // Create new article (requires create permission)
-    Route::get('/create', NewsCreate::class)->name('create');
-    
-    // View single article (uses UUID for cleaner URLs)
-    Route::get('/{news:uuid}', NewsShow::class)->name('show');
-    
-    // Edit article (requires update permission)
-    Route::get('/{news:uuid}/edit', NewsEdit::class)->name('edit');
-});
-
-// Knowledge Base Routes
-Route::middleware(['auth', 'verified'])->prefix('knowledge')->name('knowledge.')->group(function () {
-    // Browse/Search
-    Route::get('/', KnowledgeIndex::class)->name('index');
-    
-    // Create (requires permission)
-    Route::get('/create', KnowledgeCreate::class)->name('create');
-    
-    // View article
-    Route::get('/{article:uuid}', KnowledgeShow::class)->name('show');
-    
-    // Edit (requires permission)
-    Route::get('/{article:uuid}/edit', KnowledgeEdit::class)->name('edit');
-    
-    // Download attachment
-    Route::get('/attachment/{attachment:uuid}/download', [KnowledgeAttachmentController::class, 'download'])
-        ->name('attachment.download');
-});
-
 
 /*
 |--------------------------------------------------------------------------

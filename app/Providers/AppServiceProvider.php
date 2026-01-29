@@ -5,6 +5,8 @@ namespace App\Providers;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
+use App\Models\Event;
+use App\Policies\EventPolicy;
 use App\Models\News;
 use App\Policies\NewsPolicy;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -35,7 +37,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('access-admin', function ($user) {
             return $user->role === 'admin';
         });
-
+        Gate::policy(Event::class, EventPolicy::class);
         Gate::policy(News::class, NewsPolicy::class);
 
 
